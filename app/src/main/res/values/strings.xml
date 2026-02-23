@@ -12,4 +12,29 @@
     <string name="toast_reminder_created">Reminder created</string>
     <string name="toast_reminder_removed">Reminder removed</string>
     <string name="new_reminder">Next reminder</string>
+
+    <!-- Task List -->
+    <string name="add_task">Add task</string>
+    <string name="sort_by_creation">By date</string>
+    <string name="sort_by_priority">By priority</string>
+    <string name="sort_by_due_date">By due date</string>
+    <string name="empty_tasks">No tasks yet. Tap + to add one.</string>
+
+    <!-- Task Detail -->
+    <string name="task_title">Title</string>
+    <string name="task_description">Description</string>
+    <string name="task_due_date">Due date</string>
+    <string name="task_priority">Priority</string>
+    <string name="task_completed">Completed</string>
+    <string name="priority_low">Low</string>
+    <string name="priority_medium">Medium</string>
+    <string name="priority_high">High</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="new_task">New task</string>
+    <string name="edit_task">Edit task</string>
+    <string name="task_saved">Task saved</string>
+    <string name="task_deleted">Task deleted</string>
+    <string name="enter_title">Enter task title</string>
+    <string name="select_date">Select date</string>
 </resources>
