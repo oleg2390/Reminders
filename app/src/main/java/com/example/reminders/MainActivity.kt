@@ -3,13 +3,16 @@ package com.example.reminders
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.commit
-import com.example.reminders.presentation.tasklist.TaskListFragment
+import com.example.reminders.presentation.navigation.RemindersNavGraph
+import com.example.reminders.ui.theme.RemindersTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : FragmentActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -28,11 +31,9 @@ class MainActivity : FragmentActivity() {
             }
         }
 
-        setContentView(R.layout.activity_main)
-
-        if (savedInstanceState == null) {
-            supportFragmentManager.commit {
-                replace(R.id.fragment_container, TaskListFragment())
+        setContent {
+            RemindersTheme {
+                RemindersNavGraph()
             }
         }
     }

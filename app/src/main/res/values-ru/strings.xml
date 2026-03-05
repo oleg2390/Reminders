@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Reminders</string>
-    <string name="app_title">Reminders</string>
+    <string name="app_name">Напоминания</string>
+    <string name="app_title">Напоминания</string>
     <string name="permission_alert">Нет разрешения уведомлений</string>
     <string name="form_title">Создать напоминание</string>
     <string name="form_text_hint">Введите напоминание</string>
@@ -38,4 +38,14 @@
     <string name="task_deleted">Задача удалена</string>
     <string name="enter_title">Введите название задачи</string>
     <string name="select_date">Выберите дату</string>
+    <string name="no_tasks_yet_tap_to_add_one">Пока нет задач. Нажмите +, чтобы добавить.</string>
+    <string name="completed">Выполнено</string>
+    <string name="enter_task_title">Введите название задачи</string>
+    <string name="this_action_cannot_be_undone">Это действие нельзя отменить.</string>
+    <string name="delete_task">Удалить задачу?</string>
+    <string name="cancel">Отмена</string>
+    <string name="by_date">По дате</string>
+    <string name="by_priority">По приоритету</string>
+    <string name="by_due_date">По сроку</string>
+    <string name="back">Назад</string>
 </resources>

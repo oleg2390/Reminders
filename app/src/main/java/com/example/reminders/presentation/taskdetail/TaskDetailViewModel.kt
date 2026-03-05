@@ -1,16 +1,22 @@
 package com.example.reminders.presentation.taskdetail
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reminders.domain.model.Task
 import com.example.reminders.domain.model.TaskPriority
-import com.example.reminders.di.AppModule
+import com.example.reminders.domain.usecase.CreateTaskUseCase
+import com.example.reminders.domain.usecase.DeleteTaskUseCase
+import com.example.reminders.domain.usecase.GetTaskByIdUseCase
+import com.example.reminders.domain.usecase.UpdateTaskUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class TaskDetailUiState(
     val task: Task? = null,
@@ -21,15 +27,16 @@ data class TaskDetailUiState(
     val error: String? = null
 )
 
-class TaskDetailViewModel(
-    private val taskId: Long?
+@HiltViewModel
+class TaskDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val getTaskByIdUseCase: GetTaskByIdUseCase,
+    private val createTaskUseCase: CreateTaskUseCase,
+    private val updateTaskUseCase: UpdateTaskUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase,
 ) : ViewModel() {
 
-    private val getTaskByIdUseCase = AppModule.getTaskByIdUseCase
-    private val createTaskUseCase = AppModule.createTaskUseCase
-    private val updateTaskUseCase = AppModule.updateTaskUseCase
-    private val deleteTaskUseCase = AppModule.deleteTaskUseCase
-
+    private val taskId: Long? = savedStateHandle.get<Long>("task_id")?.takeIf { it >= 0L }
     private val _uiState = MutableStateFlow(TaskDetailUiState(isNewTask = taskId == null))
     val uiState: StateFlow<TaskDetailUiState> = _uiState.asStateFlow()
 
@@ -63,7 +70,7 @@ class TaskDetailViewModel(
         title: String,
         description: String,
         priority: TaskPriority,
-        dueDate: java.util.Date?,
+        dueDateMillis: Long?,
         isCompleted: Boolean
     ) {
         viewModelScope.launch {
@@ -73,7 +80,7 @@ class TaskDetailViewModel(
                     title = title,
                     description = description,
                     priority = priority,
-                    dueDate = dueDate,
+                    dueDateMillis = dueDateMillis,
                     isCompleted = isCompleted
                 )
             } else {
@@ -81,9 +88,9 @@ class TaskDetailViewModel(
                     title = title,
                     description = description,
                     priority = priority,
-                    dueDate = dueDate,
+                    dueDateMillis = dueDateMillis,
                     isCompleted = isCompleted,
-                    createdAt = java.util.Date()
+                    createdAtMillis = System.currentTimeMillis()
                 )
             }
 

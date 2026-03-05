@@ -2,13 +2,12 @@ package com.example.reminders.domain.usecase
 
 import com.example.reminders.domain.model.Task
 import com.example.reminders.domain.repository.TaskRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class DeleteTaskUseCase(
+class DeleteTaskUseCase @Inject constructor(
     private val repository: TaskRepository
 ) {
-    suspend operator fun invoke(task: Task) = withContext(Dispatchers.IO) {
+    suspend operator fun invoke(task: Task) {
         repository.deleteTask(task)
     }
 }

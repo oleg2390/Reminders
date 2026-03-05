@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import com.example.reminders.MainActivity
 import com.example.reminders.R
 import com.example.reminders.domain.model.Task
+import com.example.reminders.utils.DateTextFormatter
 
 object ReminderNotificationHelper {
 
@@ -43,9 +44,7 @@ object ReminderNotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val dueDateText = task.dueDate?.let {
-            java.text.SimpleDateFormat("MMM d, HH:mm", java.util.Locale.getDefault()).format(it)
-        } ?: ""
+        val dueDateText = task.dueDateMillis?.let { DateTextFormatter.dateTime(it).orEmpty() }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)

@@ -1,5 +1,6 @@
 package com.example.reminders.presentation.taskdetail
 
+import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,40 +31,42 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.reminders.R
 import com.example.reminders.domain.model.TaskPriority
 import com.example.reminders.ui.theme.RemindersTheme
-import java.text.SimpleDateFormat
+import com.example.reminders.utils.DateTextFormatter
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDetailScreen(
     viewModel: TaskDetailViewModel,
     onBack: () -> Unit,
-    taskId: Long?
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(uiState.saveSuccess, uiState.deleteSuccess) {
         when {
             uiState.saveSuccess -> {
-                Toast.makeText(context, "Task saved", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.task_saved, Toast.LENGTH_SHORT).show()
                 viewModel.clearSaveSuccess()
                 onBack()
             }
+
             uiState.deleteSuccess -> {
-                Toast.makeText(context, "Task deleted", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, R.string.task_deleted, Toast.LENGTH_SHORT).show()
                 viewModel.clearSaveSuccess()
                 onBack()
             }
@@ -72,13 +75,13 @@ fun TaskDetailScreen(
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
-            Toast.makeText(context, error, android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
         }
     }
 
     var title by remember { mutableStateOf(uiState.task?.title ?: "") }
     var description by remember { mutableStateOf(uiState.task?.description ?: "") }
-    var dueDate by remember { mutableStateOf(uiState.task?.dueDate) }
+    var dueDateMillis by remember { mutableStateOf(uiState.task?.dueDateMillis) }
     var priority by remember { mutableStateOf(uiState.task?.priority ?: TaskPriority.MEDIUM) }
     var isCompleted by remember { mutableStateOf(uiState.task?.isCompleted ?: false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -87,7 +90,7 @@ fun TaskDetailScreen(
         uiState.task?.let { task ->
             title = task.title
             description = task.description
-            dueDate = task.dueDate
+            dueDateMillis = task.dueDateMillis
             priority = task.priority
             isCompleted = task.isCompleted
         }
@@ -96,10 +99,18 @@ fun TaskDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (taskId == null) "New task" else "Edit task") },
+                title = {
+                    Text(
+                        if (uiState.isNewTask) stringResource(R.string.new_task)
+                        else stringResource(R.string.edit_task)
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -120,7 +131,7 @@ fun TaskDetailScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Title") },
+                label = { Text(stringResource(R.string.task_title)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -128,55 +139,61 @@ fun TaskDetailScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.task_description)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = dueDate?.let { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(it) } ?: "",
+                value = DateTextFormatter.date(dueDateMillis).orEmpty(),
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Due date") },
+                label = { Text(stringResource(R.string.task_due_date)) },
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     DatePickerButton(
-                        initialDate = dueDate,
-                        onDateSelected = { dueDate = it }
+                        initialDate = dueDateMillis?.let { Date(it) },
+                        onDateSelected = { dueDateMillis = it.time }
                     )
                 }
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Priority", style = MaterialTheme.typography.labelLarge)
-            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                stringResource(R.string.task_priority),
+                style = MaterialTheme.typography.labelLarge
+            )
+            Spacer(modifier = Modifier.padding(vertical = 4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = priority == TaskPriority.LOW,
                     onClick = { priority = TaskPriority.LOW },
-                    label = { Text("Low") }
+                    label = { Text(stringResource(R.string.priority_low)) }
                 )
                 FilterChip(
                     selected = priority == TaskPriority.MEDIUM,
                     onClick = { priority = TaskPriority.MEDIUM },
-                    label = { Text("Medium") }
+                    label = { Text(stringResource(R.string.priority_medium)) }
                 )
                 FilterChip(
                     selected = priority == TaskPriority.HIGH,
                     onClick = { priority = TaskPriority.HIGH },
-                    label = { Text("High") }
+                    label = { Text(stringResource(R.string.priority_high)) }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 androidx.compose.material3.Switch(
                     checked = isCompleted,
                     onCheckedChange = { isCompleted = it }
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
-                Text("Completed", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = stringResource(R.string.completed),
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
             Spacer(modifier = Modifier.height(24.dp))
             Row(
@@ -190,20 +207,30 @@ fun TaskDetailScreen(
                             contentColor = MaterialTheme.colorScheme.error
                         )
                     ) {
-                        Text("Delete")
+                        Text(stringResource(R.string.delete))
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
                     onClick = {
                         if (title.isNotBlank()) {
-                            viewModel.saveTask(title, description, priority, dueDate, isCompleted)
+                            viewModel.saveTask(
+                                title,
+                                description,
+                                priority,
+                                dueDateMillis,
+                                isCompleted
+                            )
                         } else {
-                            Toast.makeText(context, "Enter task title", android.widget.Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.enter_task_title),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 ) {
-                    Text("Save")
+                    Text(stringResource(R.string.save))
                 }
             }
         }
@@ -212,8 +239,8 @@ fun TaskDetailScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete task?") },
-            text = { Text("This action cannot be undone.") },
+            title = { Text(stringResource(R.string.delete_task)) },
+            text = { Text(stringResource(R.string.this_action_cannot_be_undone)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -224,12 +251,12 @@ fun TaskDetailScreen(
                         containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -279,10 +306,18 @@ private fun TaskDetailScreenPreviewContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isNewTask) "New task" else "Edit task") },
+                title = {
+                    Text(
+                        if (isNewTask) stringResource(R.string.new_task)
+                        else stringResource(R.string.edit_task)
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -303,7 +338,7 @@ private fun TaskDetailScreenPreviewContent(
             OutlinedTextField(
                 value = title,
                 onValueChange = { },
-                label = { Text("Title") },
+                label = { Text(stringResource(R.string.task_title)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -311,42 +346,45 @@ private fun TaskDetailScreenPreviewContent(
             OutlinedTextField(
                 value = description,
                 onValueChange = { },
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.task_description)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = dueDate?.let { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(it) } ?: "",
+                value = DateTextFormatter.date(dueDate?.time).orEmpty(),
                 onValueChange = { },
                 readOnly = true,
-                label = { Text("Due date") },
+                label = { Text(stringResource(R.string.task_due_date)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Priority", style = MaterialTheme.typography.labelLarge)
+            Text(
+                stringResource(R.string.task_priority),
+                style = MaterialTheme.typography.labelLarge
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = priority == TaskPriority.LOW,
                     onClick = { },
-                    label = { Text("Low") }
+                    label = { Text(stringResource(R.string.priority_low)) }
                 )
                 FilterChip(
                     selected = priority == TaskPriority.MEDIUM,
                     onClick = { },
-                    label = { Text("Medium") }
+                    label = { Text(stringResource(R.string.priority_medium)) }
                 )
                 FilterChip(
                     selected = priority == TaskPriority.HIGH,
                     onClick = { },
-                    label = { Text("High") }
+                    label = { Text(stringResource(R.string.priority_high)) }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 androidx.compose.material3.Switch(
                     checked = isCompleted,
@@ -367,12 +405,12 @@ private fun TaskDetailScreenPreviewContent(
                             contentColor = MaterialTheme.colorScheme.error
                         )
                     ) {
-                        Text("Delete")
+                        Text(stringResource(R.string.delete))
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Button(onClick = { }) {
-                    Text("Save")
+                    Text(stringResource(R.string.save))
                 }
             }
         }
@@ -389,7 +427,7 @@ private fun DatePickerButton(
 
     IconButton(
         onClick = {
-            android.app.DatePickerDialog(
+            DatePickerDialog(
                 context,
                 { _, year, month, dayOfMonth ->
                     calendar.set(year, month, dayOfMonth)
@@ -403,7 +441,7 @@ private fun DatePickerButton(
     ) {
         Icon(
             imageVector = Icons.Default.Event,
-            contentDescription = "Select date"
+            contentDescription = stringResource(R.string.select_date)
         )
     }
 }

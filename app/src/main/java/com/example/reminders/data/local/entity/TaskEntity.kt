@@ -21,9 +21,10 @@ data class TaskEntity(
         title = title,
         description = description,
         priority = TaskPriority.valueOf(priority),
-        dueDate = dueDate?.let { java.util.Date(it) },
+        dueDateMillis =  dueDate,
         isCompleted = isCompleted,
-        createdAt = java.util.Date(createdAt)
+        createdAtMillis = createdAt
+
     )
 
     companion object {
@@ -32,9 +33,9 @@ data class TaskEntity(
             title = task.title,
             description = task.description,
             priority = task.priority.name,
-            dueDate = task.dueDate?.time,
+            dueDate = task.dueDateMillis,
             isCompleted = task.isCompleted,
-            createdAt = task.createdAt.time
+            createdAt = task.createdAtMillis
         )
     }
 }

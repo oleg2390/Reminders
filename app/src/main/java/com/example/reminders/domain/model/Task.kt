@@ -1,17 +1,19 @@
 package com.example.reminders.domain.model
 
-import java.util.Date
+import androidx.compose.runtime.Immutable
 
+@Immutable
 data class Task(
     val id: Long = 0,
     val title: String,
     val description: String,
     val priority: TaskPriority,
-    val dueDate: Date?,
+    val dueDateMillis: Long?,
     val isCompleted: Boolean,
-    val createdAt: Date
+    val createdAtMillis: Long
 )
 
+@Immutable
 enum class TaskPriority {
     LOW,
     MEDIUM,

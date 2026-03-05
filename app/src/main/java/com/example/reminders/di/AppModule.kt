@@ -1,45 +1,48 @@
 package com.example.reminders.di
 
 import android.content.Context
+import androidx.room.Room
+import com.example.reminders.data.common.DispatcherProvider
+import com.example.reminders.data.local.dao.TaskDao
 import com.example.reminders.data.local.database.AppDatabase
 import com.example.reminders.data.repository.TaskRepositoryImpl
 import com.example.reminders.domain.repository.TaskRepository
-import com.example.reminders.domain.usecase.CreateTaskUseCase
-import com.example.reminders.domain.usecase.DeleteTaskUseCase
-import com.example.reminders.domain.usecase.GetTaskByIdUseCase
-import com.example.reminders.domain.usecase.GetTasksUseCase
-import com.example.reminders.domain.usecase.GetUpcomingTasksForNotificationsUseCase
-import com.example.reminders.domain.usecase.UpdateTaskUseCase
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
+@Module
+@InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private var database: AppDatabase? = null
-    private var taskRepository: TaskRepository? = null
+    private const val DATABASE_NAME = "reminders_db"
 
-    fun init(context: Context) {
-        database = AppDatabase.getInstance(context)
-        taskRepository = TaskRepositoryImpl(database!!.taskDao())
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            DATABASE_NAME
+        ).build()
     }
 
-    private fun getRepository(): TaskRepository {
-        return taskRepository ?: error("AppModule not initialized. Call init() in Application.")
+    @Provides
+    @Singleton
+    fun provideTaskDao(database: AppDatabase): TaskDao = database.taskDao()
+
+    @Provides
+    @Singleton
+    fun provideTaskRepository(
+        taskDao: TaskDao,
+        dispatchers: DispatcherProvider
+    ): TaskRepository {
+        return TaskRepositoryImpl(taskDao, dispatchers)
     }
-
-    val getTasksUseCase: GetTasksUseCase
-        get() = GetTasksUseCase(getRepository())
-
-    val getTaskByIdUseCase: GetTaskByIdUseCase
-        get() = GetTaskByIdUseCase(getRepository())
-
-    val createTaskUseCase: CreateTaskUseCase
-        get() = CreateTaskUseCase(getRepository())
-
-    val updateTaskUseCase: UpdateTaskUseCase
-        get() = UpdateTaskUseCase(getRepository())
-
-    val deleteTaskUseCase: DeleteTaskUseCase
-        get() = DeleteTaskUseCase(getRepository())
-
-    val getUpcomingTasksForNotificationsUseCase: GetUpcomingTasksForNotificationsUseCase
-        get() = GetUpcomingTasksForNotificationsUseCase(getRepository())
 }

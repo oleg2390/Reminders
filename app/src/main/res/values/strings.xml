@@ -37,4 +37,14 @@
     <string name="task_deleted">Task deleted</string>
     <string name="enter_title">Enter task title</string>
     <string name="select_date">Select date</string>
+    <string name="no_tasks_yet_tap_to_add_one">No tasks yet. Tap + to add one.</string>
+    <string name="completed">Completed</string>
+    <string name="enter_task_title">Enter task title</string>
+    <string name="this_action_cannot_be_undone">This action cannot be undone.</string>
+    <string name="delete_task">Delete task?</string>
+    <string name="cancel">Cancel</string>
+    <string name="by_date">By date</string>
+    <string name="by_priority">By priority</string>
+    <string name="by_due_date">By due date</string>
+    <string name="back">Back</string>
 </resources>

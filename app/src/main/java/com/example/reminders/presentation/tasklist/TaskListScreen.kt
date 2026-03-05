@@ -26,20 +26,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.reminders.R
 import com.example.reminders.domain.model.Task
 import com.example.reminders.domain.model.TaskPriority
 import com.example.reminders.domain.model.TaskSortOrder
 import com.example.reminders.ui.theme.RemindersTheme
-import java.util.Date
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.example.reminders.utils.DateTextFormatter
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +50,8 @@ fun TaskListScreen(
     onTaskClick: (Long) -> Unit,
     onAddTask: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     TaskListScreenPreviewContent(
         tasks = uiState.tasks,
         sortOrder = uiState.sortOrder,
@@ -64,7 +67,7 @@ fun TaskListScreen(
 private fun TaskListScreenPreviewEmpty() {
     RemindersTheme {
         TaskListScreenPreviewContent(
-            tasks = emptyList(),
+            tasks = persistentListOf(),
             sortOrder = TaskSortOrder.BY_CREATION_DATE,
             onTaskClick = {},
             onAddTask = {},
@@ -79,10 +82,11 @@ private fun TaskListScreenPreviewEmpty() {
 private fun TaskListScreenPreviewWithTasks() {
     RemindersTheme {
         TaskListScreenPreviewContent(
-            tasks = listOf(
-                Task(1, "Buy groceries", "Milk, bread, eggs", TaskPriority.HIGH, Date(), false, Date()),
-                Task(2, "Call mom", "", TaskPriority.MEDIUM, null, true, Date()),
-                Task(3, "Read book", "Finish chapter 5", TaskPriority.LOW, Date(), false, Date())
+            tasks = persistentListOf(
+                Task(1, "Buy groceries", "Milk, bread, eggs", TaskPriority.HIGH, System.currentTimeMillis(), false,
+                    System.currentTimeMillis()),
+                Task(2, "Call mom", "", TaskPriority.MEDIUM, null, true, System.currentTimeMillis()),
+                Task(3, "Read book", "Finish chapter 5", TaskPriority.LOW, System.currentTimeMillis(), false, System.currentTimeMillis())
             ),
             sortOrder = TaskSortOrder.BY_PRIORITY,
             onTaskClick = {},
@@ -96,7 +100,7 @@ private fun TaskListScreenPreviewWithTasks() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TaskListScreenPreviewContent(
-    tasks: List<Task>,
+    tasks: ImmutableList<Task>,
     sortOrder: TaskSortOrder,
     onTaskClick: (Long) -> Unit,
     onAddTask: () -> Unit,
@@ -110,7 +114,7 @@ private fun TaskListScreenPreviewContent(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add task")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_task))
             }
         }
     ) { padding ->
@@ -128,17 +132,17 @@ private fun TaskListScreenPreviewContent(
                 FilterChip(
                     selected = sortOrder == TaskSortOrder.BY_CREATION_DATE,
                     onClick = { onSortOrderChange(TaskSortOrder.BY_CREATION_DATE) },
-                    label = { Text("By date") }
+                    label = { Text(stringResource(R.string.by_date)) }
                 )
                 FilterChip(
                     selected = sortOrder == TaskSortOrder.BY_PRIORITY,
                     onClick = { onSortOrderChange(TaskSortOrder.BY_PRIORITY) },
-                    label = { Text("By priority") }
+                    label = { Text(stringResource(R.string.by_priority)) }
                 )
                 FilterChip(
                     selected = sortOrder == TaskSortOrder.BY_DUE_DATE,
                     onClick = { onSortOrderChange(TaskSortOrder.BY_DUE_DATE) },
-                    label = { Text("By due date") }
+                    label = { Text(stringResource(R.string.by_due_date)) }
                 )
             }
             if (tasks.isEmpty()) {
@@ -149,7 +153,7 @@ private fun TaskListScreenPreviewContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No tasks yet. Tap + to add one.",
+                        text = stringResource(R.string.no_tasks_yet_tap_to_add_one),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -178,7 +182,6 @@ private fun TaskItem(
     onClick: () -> Unit,
     onCompleteToggle: () -> Unit
 ) {
-    val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
 
     Card(
         modifier = Modifier
@@ -225,10 +228,10 @@ private fun TaskItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            task.dueDate?.let { date ->
+            task.dueDateMillis?.let { millis ->
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = dateFormat.format(date),
+                    text = DateTextFormatter.date(millis).orEmpty(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -240,9 +243,9 @@ private fun TaskItem(
 @Composable
 private fun PriorityChip(priority: TaskPriority) {
     val (color, text) = when (priority) {
-        TaskPriority.HIGH -> MaterialTheme.colorScheme.error to "High"
-        TaskPriority.MEDIUM -> MaterialTheme.colorScheme.tertiary to "Medium"
-        TaskPriority.LOW -> MaterialTheme.colorScheme.primary to "Low"
+        TaskPriority.HIGH -> MaterialTheme.colorScheme.error to stringResource(R.string.priority_high)
+        TaskPriority.MEDIUM -> MaterialTheme.colorScheme.tertiary to stringResource(R.string.priority_medium)
+        TaskPriority.LOW -> MaterialTheme.colorScheme.primary to stringResource(R.string.priority_low)
     }
     Card(
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.2f))
