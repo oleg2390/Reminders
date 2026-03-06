@@ -2,11 +2,8 @@ package com.example.reminders.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.reminders.data.common.DispatcherProvider
 import com.example.reminders.data.local.dao.TaskDao
 import com.example.reminders.data.local.database.AppDatabase
-import com.example.reminders.data.repository.TaskRepositoryImpl
-import com.example.reminders.domain.repository.TaskRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,13 +33,4 @@ object AppModule {
     @Provides
     @Singleton
     fun provideTaskDao(database: AppDatabase): TaskDao = database.taskDao()
-
-    @Provides
-    @Singleton
-    fun provideTaskRepository(
-        taskDao: TaskDao,
-        dispatchers: DispatcherProvider
-    ): TaskRepository {
-        return TaskRepositoryImpl(taskDao, dispatchers)
-    }
 }

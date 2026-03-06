@@ -1,7 +1,9 @@
 package com.example.reminders.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,37 +20,68 @@ fun RemindersNavGraph() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.TASK_LIST
+        startDestination = Destination.TaskList.route
     ) {
-        composable(Routes.TASK_LIST) {
+        composable(Destination.TaskList.route) {
             val viewModel: TaskListViewModel = hiltViewModel()
             TaskListScreen(
                 viewModel = viewModel,
                 onTaskClick = { taskId ->
-                    navController.navigate(Routes.detail(taskId))
+                    navController.navigate(Destination.TaskDetailWithId.createRoute(taskId))
                 },
                 onAddTask = {
-                    navController.navigate(Routes.TASK_DETAIL)
+                    navController.navigate(Destination.TaskDetail.route)
                 }
             )
         }
 
-        composable(Routes.TASK_DETAIL) {
+        composable(Destination.TaskDetail.route) {
             val viewModel: TaskDetailViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
             TaskDetailScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                uiState = uiState,
+                onBack = { navController.popBackStack() },
+                onTitleChange = viewModel::onTitleChange,
+                onDescriptionChange = viewModel::onDescriptionChange,
+                onDueDateChange = viewModel::onDueDateChange,
+                onPriorityChange = viewModel::onPriorityChange,
+                onCompleteChange = viewModel::onCompleteChange,
+                onDeleteDialogChange = viewModel::onDeleteDialogChange,
+                onSaveClick = viewModel::saveTask,
+                onDeleteClick = {
+                    uiState.task?.let { task ->
+                        viewModel.deleteTask(task)
+                    }
+                }
             )
         }
 
         composable(
-            Routes.TASK_DETAIL_WITH_ID,
-            arguments = listOf(navArgument(Routes.ARG_TASK_ID) { type = NavType.LongType })
+            Destination.TaskDetailWithId.route,
+            arguments = listOf(
+                navArgument(Destination.TaskDetailWithId.ARG_TASK_ID) {
+                    type = NavType.LongType
+                })
         ) {
             val viewModel: TaskDetailViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
             TaskDetailScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                uiState = uiState,
+                onBack = { navController.popBackStack() },
+                onTitleChange = viewModel::onTitleChange,
+                onDescriptionChange = viewModel::onDescriptionChange,
+                onDueDateChange = viewModel::onDueDateChange,
+                onPriorityChange = viewModel::onPriorityChange,
+                onCompleteChange = viewModel::onCompleteChange,
+                onDeleteDialogChange = viewModel::onDeleteDialogChange,
+                onSaveClick = viewModel::saveTask,
+                onDeleteClick = {
+                    uiState.task?.let { task ->
+                        viewModel.deleteTask(task)
+                    }
+                }
             )
         }
     }

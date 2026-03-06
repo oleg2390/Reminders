@@ -36,7 +36,7 @@ class TaskRepositoryImpl @Inject constructor(
         taskDao.update(TaskEntity.fromDomain(task))
     }
 
-    override suspend fun deleteTask(task: Task) = withContext(dispatchers.io){
+    override suspend fun deleteTask(task: Task) = withContext(dispatchers.io) {
         taskDao.deleteById(task.id)
     }
 

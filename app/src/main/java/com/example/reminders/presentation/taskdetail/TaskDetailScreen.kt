@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -31,16 +32,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.reminders.R
 import com.example.reminders.domain.model.TaskPriority
 import com.example.reminders.ui.theme.RemindersTheme
@@ -51,23 +48,28 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDetailScreen(
-    viewModel: TaskDetailViewModel,
+    uiState: TaskDetailUiState,
     onBack: () -> Unit,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onDueDateChange: (Long?) -> Unit,
+    onPriorityChange: (TaskPriority) -> Unit,
+    onCompleteChange: (Boolean) -> Unit,
+    onDeleteDialogChange: (Boolean) -> Unit,
+    onSaveClick: () -> Unit,
+    onDeleteClick: () -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(uiState.saveSuccess, uiState.deleteSuccess) {
         when {
             uiState.saveSuccess -> {
                 Toast.makeText(context, R.string.task_saved, Toast.LENGTH_SHORT).show()
-                viewModel.clearSaveSuccess()
                 onBack()
             }
 
             uiState.deleteSuccess -> {
                 Toast.makeText(context, R.string.task_deleted, Toast.LENGTH_SHORT).show()
-                viewModel.clearSaveSuccess()
                 onBack()
             }
         }
@@ -76,23 +78,6 @@ fun TaskDetailScreen(
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    var title by remember { mutableStateOf(uiState.task?.title ?: "") }
-    var description by remember { mutableStateOf(uiState.task?.description ?: "") }
-    var dueDateMillis by remember { mutableStateOf(uiState.task?.dueDateMillis) }
-    var priority by remember { mutableStateOf(uiState.task?.priority ?: TaskPriority.MEDIUM) }
-    var isCompleted by remember { mutableStateOf(uiState.task?.isCompleted ?: false) }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-
-    LaunchedEffect(uiState.task) {
-        uiState.task?.let { task ->
-            title = task.title
-            description = task.description
-            dueDateMillis = task.dueDateMillis
-            priority = task.priority
-            isCompleted = task.isCompleted
         }
     }
 
@@ -129,31 +114,31 @@ fun TaskDetailScreen(
                 .padding(16.dp)
         ) {
             OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
+                value = uiState.title,
+                onValueChange = onTitleChange,
                 label = { Text(stringResource(R.string.task_title)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
+                value = uiState.description,
+                onValueChange = onDescriptionChange,
                 label = { Text(stringResource(R.string.task_description)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = DateTextFormatter.date(dueDateMillis).orEmpty(),
+                value = DateTextFormatter.date(uiState.dueDateMillis).orEmpty(),
                 onValueChange = {},
                 readOnly = true,
                 label = { Text(stringResource(R.string.task_due_date)) },
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     DatePickerButton(
-                        initialDate = dueDateMillis?.let { Date(it) },
-                        onDateSelected = { dueDateMillis = it.time }
+                        initialDate = uiState.dueDateMillis?.let { Date(it) },
+                        onDateSelected = { onDueDateChange(it.time) }
                     )
                 }
             )
@@ -165,18 +150,18 @@ fun TaskDetailScreen(
             Spacer(modifier = Modifier.padding(vertical = 4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
-                    selected = priority == TaskPriority.LOW,
-                    onClick = { priority = TaskPriority.LOW },
+                    selected = uiState.priority == TaskPriority.LOW,
+                    onClick = { onPriorityChange(TaskPriority.LOW) },
                     label = { Text(stringResource(R.string.priority_low)) }
                 )
                 FilterChip(
-                    selected = priority == TaskPriority.MEDIUM,
-                    onClick = { priority = TaskPriority.MEDIUM },
+                    selected = uiState.priority == TaskPriority.MEDIUM,
+                    onClick = { onPriorityChange(TaskPriority.MEDIUM) },
                     label = { Text(stringResource(R.string.priority_medium)) }
                 )
                 FilterChip(
-                    selected = priority == TaskPriority.HIGH,
-                    onClick = { priority = TaskPriority.HIGH },
+                    selected = uiState.priority == TaskPriority.HIGH,
+                    onClick = { onPriorityChange(TaskPriority.HIGH) },
                     label = { Text(stringResource(R.string.priority_high)) }
                 )
             }
@@ -185,9 +170,9 @@ fun TaskDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                androidx.compose.material3.Switch(
-                    checked = isCompleted,
-                    onCheckedChange = { isCompleted = it }
+                Switch(
+                    checked = uiState.isCompleted,
+                    onCheckedChange = onCompleteChange
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
                 Text(
@@ -202,7 +187,7 @@ fun TaskDetailScreen(
             ) {
                 if (uiState.task != null) {
                     TextButton(
-                        onClick = { showDeleteConfirm = true },
+                        onClick = { onDeleteDialogChange(true) },
                         colors = ButtonDefaults.textButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
                         )
@@ -213,14 +198,8 @@ fun TaskDetailScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
                     onClick = {
-                        if (title.isNotBlank()) {
-                            viewModel.saveTask(
-                                title,
-                                description,
-                                priority,
-                                dueDateMillis,
-                                isCompleted
-                            )
+                        if (uiState.title.isNotBlank()) {
+                            onSaveClick()
                         } else {
                             Toast.makeText(
                                 context,
@@ -236,16 +215,16 @@ fun TaskDetailScreen(
         }
     }
 
-    if (showDeleteConfirm) {
+    if (uiState.showDeleteConfirm) {
         AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
+            onDismissRequest = { onDeleteDialogChange(false) },
             title = { Text(stringResource(R.string.delete_task)) },
             text = { Text(stringResource(R.string.this_action_cannot_be_undone)) },
             confirmButton = {
                 Button(
                     onClick = {
-                        uiState.task?.let { viewModel.deleteTask(it) }
-                        showDeleteConfirm = false
+                        onDeleteClick()
+                        onDeleteDialogChange(false)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
@@ -255,7 +234,7 @@ fun TaskDetailScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
+                TextButton(onClick = { onDeleteDialogChange(false) }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -386,7 +365,7 @@ private fun TaskDetailScreenPreviewContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                androidx.compose.material3.Switch(
+                Switch(
                     checked = isCompleted,
                     onCheckedChange = { }
                 )
