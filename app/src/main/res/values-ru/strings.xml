@@ -1,16 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Reminders</string>
-    <string name="app_title">Reminders</string>
+    <string name="app_name">Напоминания</string>
+    <string name="app_title">Напоминания</string>
     <string name="permission_alert">Нет разрешения уведомлений</string>
     <string name="form_title">Создать напоминание</string>
     <string name="form_text_hint">Введите напоминание</string>
     <string name="form_date_hint">Выберите дату</string>
-    <string name="form_time_hint">Выберите врремя</string>
+    <string name="form_time_hint">Выберите время</string>
     <string name="form_create">Создать</string>
     <string name="toast_datetime_error">Выберите дату и время</string>
     <string name="toast_text_error">Введите текст напоминания</string>
     <string name="toast_reminder_created">Напоминание создано</string>
     <string name="toast_reminder_removed">Напоминание удалено</string>
     <string name="new_reminder">Новое напоминание</string>
+
+    <!-- Task List -->
+    <string name="add_task">Добавить задачу</string>
+    <string name="sort_by_creation">По дате</string>
+    <string name="sort_by_priority">По приоритету</string>
+    <string name="sort_by_due_date">По сроку</string>
+    <string name="empty_tasks">Нет задач. Нажмите + чтобы добавить.</string>
+
+    <!-- Task Detail -->
+    <string name="task_title">Название</string>
+    <string name="task_description">Описание</string>
+    <string name="task_due_date">Срок выполнения</string>
+    <string name="task_priority">Приоритет</string>
+    <string name="task_completed">Выполнено</string>
+    <string name="priority_low">Низкий</string>
+    <string name="priority_medium">Средний</string>
+    <string name="priority_high">Высокий</string>
+    <string name="save">Сохранить</string>
+    <string name="delete">Удалить</string>
+    <string name="new_task">Новая задача</string>
+    <string name="edit_task">Редактировать задачу</string>
+    <string name="task_saved">Задача сохранена</string>
+    <string name="task_deleted">Задача удалена</string>
+    <string name="enter_title">Введите название задачи</string>
+    <string name="select_date">Выберите дату</string>
+    <string name="no_tasks_yet_tap_to_add_one">Пока нет задач. Нажмите +, чтобы добавить.</string>
+    <string name="completed">Выполнено</string>
+    <string name="enter_task_title">Введите название задачи</string>
+    <string name="this_action_cannot_be_undone">Это действие нельзя отменить.</string>
+    <string name="delete_task">Удалить задачу?</string>
+    <string name="cancel">Отмена</string>
+    <string name="by_date">По дате</string>
+    <string name="by_priority">По приоритету</string>
+    <string name="by_due_date">По сроку</string>
+    <string name="back">Назад</string>
 </resources>

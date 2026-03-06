@@ -12,4 +12,6 @@
     <color name="dark">#80000000</color>
     <color name="gradient_blue">#FF58A6FF</color>
     <color name="gradient_purple">#FFEE82EE</color>
+    <color name="primary">#6200EE</color>
+    <color name="primary_dark">#3700B3</color>
 </resources>
